@@ -4,61 +4,79 @@ var opKeys = document.getElementById('operator-keys');
 var equals = document.getElementById('equals-button');
 var clear = document.getElementById('clear-button');
 
-var screenComponents = [];
-var screenInput = '';
-var currNumber = null;
+var components = []; // array for stored values
+var currNumber = '';
 var currOperator = null;
 var canDecimal = true;
 var canOperator = true;
 var evaluated = false;
+var screenInput = '';
 
-function handleDecimalKey(target) {
-	if (canDecimal) {
+function handleDecimal(target) {
+	if(canDecimal) {
 		if(currNumber) {
 			screen.innerHTML += target;
-			currNumber += target;
-			canDecimal = false;
-			canOperator = false;
-			evaluated = false;
 		} else {
-			screen.innerHTML += target;
-			
+			screen.innerHTML += 0 + target;
 		}
+		currNumber += target;
+		canDecimal = false;
+		canOperator = false;
+		evaluated = false;
 	}
 }
 
-function handleNumKey(target) {
-	console.log('handleNumKey function: ', target);
+function handleNum(target) {
+	console.log('handleNum function: ', target);
 	screen.innerHTML += target;
+	currNumber += target;
 	canOperator = true;
+	evaluated = false;
 }
 
-function handleOpKey(target) {
+function handleOp(target) {
 	if(canOperator) {
 		screen.innerHTML += target;
 		canDecimal = true;
-		canOperator = false;
+		components.push(currNumber);
+		currNumber = '';
+	} else {
+		if(currNumber === '') {
+			screen.innerHTML = screen.innerHTML.slice(0,-1) + target;
+			canDecimal = true;
+			components.push(currNumber);
+		}
 	}
+	canOperator = false;
+}
+
+function posNeg() {
+	var currNumLength = 0 - currNumber.length;
+	var testScreen = screen.innerHTML.slice(0, currNumLength)
+	console.log('negating times ', testScreen);
+	currNumber = currNumber * -1;
+	screen.innerHTML = screen.innerHTML.slice(0, currNumLength) + currNumber;
+	evaluated = false;
+
 }
 
 function clickOp(targ) {
 	console.log('clickOp function:', event);
 	if(targ.tagName === 'BUTTON') {
 		if(targ.value === '.') {
-			handleDecimalKey(targ.value);
+			handleDecimal(targ.value);
 			evaluated = false;
 		} else if (event.target.matches('.number')) {
 				if(evaluated) {
 					screen.innerHTML = '';
 					evaluated = false;
 				}
-			handleNumKey(targ.value);
+			handleNum(targ.value);
 		} else if(event.target.matches('.operator')) {
-			handleOpKey(targ.value);
+			handleOp(targ.value);
 			evaluated = false;
 		} else if(event.target.id === 'negate') {
-			screen.innerHTML = screen.innerHTML * -1;
-			evaluated = false;
+			posNeg();
 		}
 	}
 }
@@ -81,7 +99,7 @@ keyInputs.addEventListener('click', function(event) {
 
 equals.addEventListener('click', function(event) {
 	var screenContent = screen.innerHTML;
-	console.log(screenContent);
+	console.log('about to equals ', screenContent);
 	if(isLastOperator(screenContent)) {
 		var cleanText = screenContent.slice(0, screenContent.length - 1)
 		var answer = eval(cleanText);
@@ -91,6 +109,7 @@ equals.addEventListener('click', function(event) {
 		screen.innerHTML = round(screenContent, 3);
 	}
 	evaluated = true;
+	currNumber = screen.innerHTML;
 	console.log('equals event listener: ', event);
 });
 
@@ -103,30 +122,10 @@ clear.addEventListener('click', function(event) {
 document.addEventListener('keyup', function(event){
 	console.log('KEYUP: ', event);
 	if(event.keyCode === 190) {
-		handleDecimalKey(event.key);
+		handleDecimal(event.key);
 	} else if(event.keyCode >= 48 && event.keyCode <= 57) {
-		handleNumKey(event.key);
+		handleNum(event.key);
 	} else if(event.key === '+' || event.key === '-' || event.key === '*' || event.key === '/') {
-		handleOpKey(event.key);
+		handleOp(event.key);
 	}
 });
-
-// var buttonVal = event.target.value;
-// if(event.target.tagName === 'BUTTON') {
-// 	if(buttonVal === '.') {
-// 		if (canDecimal) {
-// 			screen.innerHTML += buttonVal;
-// 			canDecimal = false;
-// 			canOperator = false;
-// 		}
-// 	} else if (event.target.matches('.number')) {
-// 		screen.innerHTML += buttonVal;
-// 		canOperator = true;
-// 	} else if(event.target.matches('.operator')) {
-// 		if(canOperator) {
-// 			screen.innerHTML += buttonVal;
-// 			canDecimal = true;
-// 			canOperator = false;
-// 		}
-// 	}
-// }
