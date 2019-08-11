@@ -8,7 +8,7 @@ var components = []; // array for stored values
 var currNumber = '';
 var currOperator = null;
 var canDecimal = true;
-var canOperator = true;
+var canOperator = false;
 var evaluated = false;
 var screenInput = '';
 
@@ -17,7 +17,7 @@ function handleDecimal(target) {
 		if(currNumber) {
 			screen.innerHTML += target;
 		} else {
-			screen.innerHTML += 0 + target;
+			screen.innerHTML += '0' + target;
 		}
 		currNumber += target;
 		canDecimal = false;
@@ -27,9 +27,16 @@ function handleDecimal(target) {
 }
 
 function handleNum(target) {
-	console.log('handleNum function: ', target);
-	screen.innerHTML += target;
-	currNumber += target;
+	var screenOther = screen.innerHTML.slice(0, -1);
+	if (screen.innerHTML[screen.innerHTML.length -1] === ')') {
+		console.log('itsa )!');
+		screen.innerHTML = screenOther + target + ')';
+		currNumber += target;
+	} else {
+		console.log('i dont know what im saying', screen.innerHTML[screen.innerHTML.length -1]);
+		screen.innerHTML += target;
+		currNumber += target;
+	}
 	canOperator = true;
 	evaluated = false;
 }
@@ -41,7 +48,9 @@ function handleOp(target) {
 		components.push(currNumber);
 		currNumber = '';
 	} else {
-		if(currNumber === '') {
+		if(screen.innerHTML === '') {
+			screen.innerHTML = '0' + target;
+		} else if(currNumber === '') {
 			screen.innerHTML = screen.innerHTML.slice(0,-1) + target;
 			canDecimal = true;
 			components.push(currNumber);
@@ -51,17 +60,30 @@ function handleOp(target) {
 }
 
 function posNeg() {
-	var currNumLength = 0 - currNumber.length;
-	var testScreen = screen.innerHTML.slice(0, currNumLength)
-	console.log('negating times ', testScreen);
+	let currNumLength = 0 - currNumber.toString().length;
+	let screenOther = screen.innerHTML.slice(0, currNumLength);
+	// console.log('sliced screen:', screenOther, 'currNumber: ', currNumber);
 	currNumber = currNumber * -1;
-	screen.innerHTML = screen.innerHTML.slice(0, currNumLength) + currNumber;
+	if(screen.innerHTML[screen.innerHTML.length -1] === ')') {
+		let numberToLength = 0 - currNumber.toString().length - 3;
+		console.log('please god say this is working');
+			// currNumLength = currNumLength - 2;
+		console.log('furious', currNumber, numberToLength);
+		screen.innerHTML = screen.innerHTML.slice(0, numberToLength) + currNumber;
+	} else if(screenOther === '') {
+		console.log('just swappin polarities');
+		screen.innerHTML = currNumber;
+	} else {
+		console.log('everything else');
+		console.log(screenOther);
+		screen.innerHTML = screenOther + '(' + currNumber + ')';
+		console.log(screen.innerHTML);
+	} 
 	evaluated = false;
-
 }
 
 function clickOp(targ) {
-	console.log('clickOp function:', event);
+	// console.log('clickOp function:', event);
 	if(targ.tagName === 'BUTTON') {
 		if(targ.value === '.') {
 			handleDecimal(targ.value);
@@ -117,6 +139,7 @@ equals.addEventListener('click', function(event) {
 
 clear.addEventListener('click', function(event) {
 	screen.innerHTML = '';
+	currNumber = '';
 });
 
 document.addEventListener('keyup', function(event){
